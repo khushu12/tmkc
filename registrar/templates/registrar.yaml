@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registrar
+  labels:
+    app: registrar
+spec:
+  selector:
+    matchLabels:
+      app: registrar
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: registrar
+        tier: backend
+    spec:
+      imagePullSecrets:
+      - name: cnhubcred
+      containers:
+      - name: registrar
+        imagePullPolicy: IfNotPresent
+        image: celona/celona-registrar:{{ .Chart.Version }}
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        - name: PUBIP
+          value: "{{ .Values.global.PubIp }}"
+        - name: CLOUDTYPE
+          value: "{{ .Values.global.CloudType }}"
+        - name: SVCREGHOST
+          value: "{{ .Values.global.ServiceRegistryHost}}"
+        - name: SVCREGPORT
+          value: "{{ .Values.global.ServiceRegistryPort}}"
+        - name: CN_CSO_INVM
+          value: "{{ .Values.global.CsoInvm }}"
+        - name: CN_CSO_UID
+          value: "{{ .Values.global.CsoUID }}"
+        - name: CN_PROD
+          value: "{{ .Values.global.Prod }}"
+        - name: CSO
+          value: "{{ .Values.global.CsoPortal}}"
+        - name: PLATFORM_TYPE
+          value: "{{ .Values.global.PlatformType }}"
+        - name: MONGO_HOSTNAME
+          value: "cn-mongo-headless"
+        ports:
+        - containerPort: 34408
+        volumeMounts:
+          - name: mongo-auth
+            mountPath: /etc/mongo-auth
+          - name: etc-volume
+            mountPath: /opt/celona/etc
+      volumes:
+        - name: mongo-auth
+          secret:
+            secretName: mongo-auth
+        - name: etc-volume
+          hostPath:
+          # directory location on host
+            path: /opt/celona/etc

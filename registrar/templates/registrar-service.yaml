@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: registrar
+spec:
+  selector:
+    app: registrar
+  type: NodePort
+  ports:
+    - port: 34408
+      name: 34408-tcp
+{{- if .Values.global.NoNodePortHardcoding }}
+{{- else }}
+      nodePort: 36648
+{{- end }}

@@ -1,0 +1,5 @@
+apiVersion: v2
+appVersion: 0.0.655-develop
+description: A Helm chart for Kubernetes
+name: registrar
+version: 0.0.655-develop
