@@ -1,0 +1,1 @@
+{"preinstall":[{"platform":"host", "command":"delete_ccnm_job.sh"}]}

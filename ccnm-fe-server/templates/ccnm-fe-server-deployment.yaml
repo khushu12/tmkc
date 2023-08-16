@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ccnm-fe-server
+  labels:
+    app: L-ccnm-fe-server
+spec:
+  selector:
+    matchLabels:
+      app: L-ccnm-fe-server
+      tier: frontend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: L-ccnm-fe-server
+        tier: frontend
+    spec:
+      imagePullSecrets:
+      - name: cnhubcred
+      containers:
+      - name: ccnm-fe-server
+        image: celona/ccnm-fe-server:{{ .Chart.Version }}
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        - name: CN_APP_ROOT_DIR
+          value: "/var/www/celona"
+        - name: CN_API_GW_URL
+          value: "{{ .Values.global.ApiGwUrl }}"
+        ports:
+        - containerPort: 80
+

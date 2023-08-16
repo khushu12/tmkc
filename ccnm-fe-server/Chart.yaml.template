@@ -1,0 +1,5 @@
+apiVersion: v1
+appVersion: <VERSION>
+description: A Helm chart for Kubernetes
+name: ccnm-fe-server
+version: <VERSION>

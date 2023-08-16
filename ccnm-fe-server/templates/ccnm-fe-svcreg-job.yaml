@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ccnm-svcreg-job
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+      - name: cnhubcred
+      containers:
+      - name: ccnm-svcreg-job
+        image: celona/ccnm-fe-server-job:{{ .Chart.Version }}
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: CLUSTERID
+          value: "{{ .Values.global.ClusterId }}"
+        - name: PLATFORM_TYPE
+          value: "{{ .Values.global.PlatformType}}"
+        - name: SVCREGHOST
+          value: "{{ .Values.global.ServiceRegistryHost}}"
+        - name: SVCREGPORT
+          value: "{{ .Values.global.ServiceRegistryPort}}"
+      restartPolicy: Never

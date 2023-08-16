@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ff-grpc-restapi-conversion
+  labels:
+    app: L-ff-grpc-restapi-conversion
+spec:
+  selector:
+    matchLabels:
+      app: L-ff-grpc-restapi-conversion
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: L-ff-grpc-restapi-conversion
+        tier: backend
+    spec:
+      imagePullSecrets:
+        - name: cnhubcred
+      containers:
+        - name: ff-grpc-restapi-conversion
+          image: celona/celona-ff-grpc-restapi-conversion:{{ .Chart.Version }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: GET_HOSTS_FROM
+              value: dns
+            - name: CN_CFGM_DB_HOST
+              value: "{{ .Values.CfgmDbHost }}"
+            - name: CN_CFGM_DB_NAME
+              value: "{{ .Values.CfgmDbName }}"
+            - name: CN_CFGM_DB_USER
+              value: "{{ .Values.CfgmDbUser }}"
+            - name: CN_CFGM_DB_PASSWORD
+              value: "{{ .Values.CfgmDbPassword }}"
+            - name: CN_INVM_DB_HOST
+              value: "{{ .Values.InvmDbHost }}"
+            - name: CN_INVM_DB_NAME
+              value: "{{ .Values.InvmDbName }}"
+            - name: CN_INVM_DB_USER
+              value: "{{ .Values.InvmDbUser }}"
+            - name: CN_INVM_DB_PASSWORD
+              value: "{{ .Values.InvmDbPassword }}"
+            - name: CN_API_GW_URL
+              value: "{{ .Values.global.ApiGwUrl }}"
+            - name: CN_CSO_PORTAL
+              value: "{{ .Values.global.CsoPortal }}"
+            - name: DBSUFFIX
+              value: "{{ .Values.DbSuffix }}"
+            - name: CN_SERVER_PORT
+              value: "8088"
+            - name: SVCREGHOST
+              value: "{{ .Values.global.ServiceRegistryHost}}"
+            - name: SVCREGPORT
+              value: "{{ .Values.global.ServiceRegistryPort}}"
+          ports:
+            - containerPort: 8088
