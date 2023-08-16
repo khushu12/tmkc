@@ -1,0 +1,34 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: "cn-service-registry"
+spec:
+  selector:
+    app: "service-registry"
+  type: NodePort
+  ports:
+    - name: cn-sr
+      protocol: TCP
+      port: 4223
+{{- if .Values.global.NoNodePortHardcoding }}
+      nodePort: 30005
+{{- else }}
+      nodePort: 36005
+{{- end }}
+    - name: cn-sr-grpc
+      protocol: TCP
+      port: 31234
+{{- if .Values.global.NoNodePortHardcoding }}
+      nodePort: 30006
+{{- else }}
+      nodePort: 36006
+{{- end }}
+    - name: cn-sr-socket
+      protocol: TCP
+      port: 31235
+{{- if .Values.global.NoNodePortHardcoding }}
+      nodePort: 30009
+{{- else }}
+      nodePort: 36009
+{{- end }}

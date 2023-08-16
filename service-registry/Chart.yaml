@@ -1,0 +1,5 @@
+apiVersion: v2
+appVersion: 0.0.636-develop
+description: A Helm chart for Kubernetes
+name: service-registry
+version: 0.0.636-develop

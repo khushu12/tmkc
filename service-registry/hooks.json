@@ -1,0 +1,1 @@
+{"postinstall":[{"platform":"host", "command":"register_mongo.sh"}]}

@@ -1,0 +1,152 @@
+apiVersion: "apps/v1"
+kind: DaemonSet
+metadata:
+  name: service-registry
+  labels:
+    app: service-registry
+spec:
+  serviceName: service-registry
+  selector:
+    matchLabels:
+      app: service-registry
+  template:
+    metadata:
+      labels:
+        app: service-registry
+      annotations:
+        telegraf.influxdata.com/inputs: |+
+          [[inputs.kubernetes]]
+            ## URL for the kubelet
+            url = "https://127.0.0.1:10250"
+            insecure_skip_verify = true
+        telegraf.influxdata.com/class: app
+        telegraf.influxdata.com/env-fieldref-NAMESPACE: metadata.namespace
+        telegraf.influxdata.com/limits-cpu: '750m'
+        # invalid memory limit, which will be ignored
+        telegraf.influxdata.com/limits-memory: '800x'
+    spec:
+      serviceAccountName: service-registry-sa
+      imagePullSecrets:
+      - name: cnhubcred
+      containers:
+        - name: sidecar-ndots
+          image: celona/celona-sidecar-ndots:{{ .Values.global.SidecarNdotsVersion }}
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: SVCREGHOST
+            value: "{{ .Values.global.ServiceRegistryHost }}"
+          - name: SVCREGPORT
+            value: "{{ .Values.global.ServiceRegistryPort}}"
+        - name: service-registry
+          image: celona/celona-service-registry:{{ .Chart.Version }}
+          ports:
+            - containerPort: 4223
+              protocol: TCP
+              name: 4223-tcp
+            - containerPort: 31234
+              protocol: TCP
+              name: 31234-tcp
+            - containerPort: 31235
+              protocol: TCP
+              name: 31235-tcp
+            - containerPort: 1234
+              protocol: TCP
+              name: debug-tcp
+          env:
+          - name: SPLIT_SDK_KEY
+            value: "{{ .Values.global.SplitSdkKey }}"
+          - name: CLUSTERID
+            value: "{{ .Values.global.ClusterId }}"
+          - name: PLATFORMTYPE
+            value: "{{ .Values.global.PlatformType }}"
+          - name: DEPLOYMENT
+            value: "{{ .Values.global.Deployment }}"
+          - name: NODEPORTLBIP
+          {{ if eq .Values.global.PlatformType "cso" }}
+            value: "{{ .Values.global.nodePortLBIP }}"
+          {{ else if eq .Values.global.ClusterEnabled "yes" }}
+            value: "{{ .Values.global.VrrpIp }}"
+          {{ else }}
+            value: "{{ .Values.global.PubIp }}"
+          {{ end }}
+          - name: PRIVATECSO
+          {{- if .Values.global.PrivateCSO }}
+            value: "yes"
+          {{- else }}
+            value: "no"
+          {{- end }}
+          - name: HTTP1LBIP
+            value: "{{ .Values.global.HTTP1LBIP }}"
+          - name: HTTP2LBIP
+            value: "{{ .Values.global.HTTP2LBIP }}"
+          - name: CSOIP
+            value: "{{ .Values.global.CsoIP }}"
+          - name: PUBIP
+            value: "{{ .Values.global.PubIp }}"
+          - name: LOGGER_DIGEST_JSON_FILE
+            value: "/usr/local/celona/logdigest.json"
+          - name: SVCREGHOST
+            value: "{{ .Values.global.ServiceRegistryHost}}"
+          - name: SVCREGPORT
+            value: "{{ .Values.global.ServiceRegistryPort}}"
+          - name: CURRENT_MASTER
+            value: "{{ .Values.global.CurrentMaster }}"
+          - name: PRIVATECSO
+          {{- if .Values.global.PrivateCSO }}
+            value: "yes"
+          {{- else }}
+            value: "no"
+          {{- end }}
+          - name: SVCREG_USE_TIMESTAMP
+            value: "{{ .Values.global.SvcregUseTimestamp }}"
+          - name: NODENAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: HOST_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          volumeMounts:
+            - name: mongo-auth
+              mountPath: /etc/mongo-auth
+            - name: etc-volume
+              mountPath: /opt/celona/etc
+{{- if .Values.global.PrivateCSO }}
+{{- else }}
+            - name: svcregpod-ip-file
+              mountPath: /etc/svcregpod_ip
+{{- end }}
+            - name: etcssl-volume
+              mountPath: /etc/ssl
+      nodeSelector:
+        nodetype: worker
+      volumes:
+        - name: mongo-auth
+          secret:
+            secretName: mongo-auth
+        - name: etc-volume
+          hostPath:
+          # directory location on host
+            path: /opt/celona/etc
+        - name: svcregpod-ip-file
+          hostPath:
+            # directory location on host
+            path: /opt/celona/etc/svcregpod_ip
+            # this field is optional
+            type: FileOrCreate
+        - name: etcssl-volume
+          hostPath:
+          # directory location on host
+            path: /etc/ssl
