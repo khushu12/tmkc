@@ -1,6 +1,0 @@
-{
-  "preinstall":
-  [
-    {"platform":"host", "command":"preinstall.sh"}
-  ]
-}
