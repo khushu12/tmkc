@@ -7,8 +7,8 @@ spec:
     app: registrar
   type: NodePort
   ports:
-    - port: 34408
-      name: 34408-tcp
+    - port: 34409
+      name: 34409-tcp
 {{- if .Values.global.NoNodePortHardcoding }}
 {{- else }}
       nodePort: 36648
