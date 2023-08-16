@@ -30,7 +30,7 @@ spec:
       - name: cnhubcred
       containers:
         - name: sidecar-ndots
-          image: celona/celona-sidecar-ndots:{{ .Values.global.SidecarNdotsVersion }}
+          image: celona/celona-sidecar-ndots:0.0.7-develop
           env:
           - name: POD_NAME
             valueFrom:
